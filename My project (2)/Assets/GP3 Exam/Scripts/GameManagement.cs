@@ -7,5 +7,5 @@ public class GameManagement : MonoBehaviour
     void Start()
     {
         scoreBoard = GetComponent<ScoreBoard>();
-    }    
+    }
 }

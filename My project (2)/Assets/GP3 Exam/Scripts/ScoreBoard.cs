@@ -3,46 +3,73 @@ using TMPro;
 
 public class ScoreBoard : MonoBehaviour
 {
-    public TextMeshProUGUI scoreCountText;
-    public TextMeshProUGUI WinText;
-    public int score;
+    // Public UI elements to update score and win text
+    public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI winText;
 
-    public int OrbNum;
+    // Game parameters
+    public int totalOrbs;
     public GameObject orbPrefab;
-    public Vector2 randomXPos;
-    public Vector2 randomZPos;
+    public Vector2 randomXRange;
+    public Vector2 randomZRange;
 
-    void Start() 
+    private int currentScore = 0;
+
+    void Start()
     {
-        for (int i = 0; i < OrbNum;) 
+        SpawnOrbs();
+    }
+
+    // Spawns orbs randomly on the floor
+    private void SpawnOrbs()
+    {
+        int spawnedOrbs = 0;
+
+        while (spawnedOrbs < totalOrbs)
         {
-            float xPos = Random.Range(randomXPos.x, randomXPos.y);
-            float zPos = Random.Range(randomZPos.x, randomZPos.y);
-            Vector3 rayPos = new Vector3 (xPos, 20, zPos);
-            Ray ray = new Ray(rayPos, -transform.up);
-            RaycastHit hitInfo;
-            if (Physics.Raycast(ray, out hitInfo, 100))
+            Vector3 randomPosition = GetRandomSpawnPosition();
+            if (IsValidSpawnPosition(randomPosition, out Vector3 groundPosition))
             {
-                Debug.Log(hitInfo.collider.gameObject.name);
-                if (hitInfo.collider.gameObject.CompareTag("Floor"))
-                {
-                    i++;
-                    Vector3 orbNewPos = new Vector3 (hitInfo.point.x, 1, hitInfo.point.z);
-                    Instantiate(orbPrefab, orbNewPos, Quaternion.identity);
-                }
+                Instantiate(orbPrefab, groundPosition, Quaternion.identity);
+                spawnedOrbs++;
             }
         }
     }
 
-    public void ScoreCount() 
+    // Generates a random position within the specified range
+    private Vector3 GetRandomSpawnPosition()
     {
-        score++;
-        scoreCountText.text = "Score: " + score;
-        if (score == OrbNum) 
-        {
-            WinText.text = "You Win";
-        }
+        float randomX = Random.Range(randomXRange.x, randomXRange.y);
+        float randomZ = Random.Range(randomZRange.x, randomZRange.y);
+        return new Vector3(randomX, 20, randomZ); // 20 is the height from which ray is cast
     }
 
+    // Checks if the raycast hits the floor and returns a valid ground position
+    private bool IsValidSpawnPosition(Vector3 startPosition, out Vector3 groundPosition)
+    {
+        Ray ray = new Ray(startPosition, Vector3.down); // Cast downwards
+        if (Physics.Raycast(ray, out RaycastHit hitInfo, 100))
+        {
+            if (hitInfo.collider.gameObject.CompareTag("Floor"))
+            {
+                groundPosition = new Vector3(hitInfo.point.x, 1, hitInfo.point.z); // 1 is the y-offset for orbs
+                return true;
+            }
+        }
 
+        groundPosition = Vector3.zero;
+        return false;
+    }
+
+    // Updates the score and checks for win condition
+    public void IncreaseScore()
+    {
+        currentScore++;
+        scoreText.text = $"Score: {currentScore}";
+
+        if (currentScore >= totalOrbs)
+        {
+            winText.text = "You Win!";
+        }
+    }
 }

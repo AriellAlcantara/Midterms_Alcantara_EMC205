@@ -2,32 +2,38 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float speed;
+    public float movementSpeed = 5f;  // More descriptive variable name
 
-    public GameManagement management;
+    public GameManagement gameManager;  // Clearer reference to the GameManagement script
 
-    void Start()
+    void Update()
     {
-        
+        HandleMovement();
     }
 
-    
-    void Update()
+    // Handles player movement based on input
+    private void HandleMovement()
     {
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
-        Vector3 movement = new Vector3 (horizontal, 0, vertical);
-        transform.Translate (movement * Time.deltaTime * speed);
+        Vector3 movement = new Vector3(horizontal, 0, vertical) * movementSpeed * Time.deltaTime;
+        transform.Translate(movement);
     }
 
-    private void OnCollisionEnter(Collision collision) 
+    // Handles collisions with collectable objects
+    private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Collectable"))
         {
-            management.scoreBoard.ScoreCount();
-            collision.gameObject.SetActive(false);
+            CollectOrb(collision);
         }
     }
 
+    // Updates score and deactivates collected orb
+    private void CollectOrb(Collision collectable)
+    {
+        gameManager.scoreBoard.IncreaseScore();
+        collectable.gameObject.SetActive(false);
+    }
 }
